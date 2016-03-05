@@ -1,6 +1,5 @@
 import re
 import time
-import math
 import anki.sound
 
 from anki.sound import play
@@ -15,45 +14,49 @@ sound_regex = ur"\[sound:(.*?)\]"
 
 audio_file = ""
 audio_speed = 1.0
+audio_replay = False
 
 def my_keyHandler(self, evt):
     key = unicode(evt.text())
-    global audio_speed
+    global audio_speed, audio_replay
     if key == "5":
         audio_speed = 0.5
-        play(audio_file)
-    if key == "6":
+    elif key == "6":
         audio_speed = 0.6
-        play(audio_file)
-    if key == "7":
+    elif key == "7":
         audio_speed = 0.7
-        play(audio_file)
-    if key == "8":
+    elif key == "8":
         audio_speed = 0.8
-        play(audio_file)
-    if key == "9":
+    elif key == "9":
         audio_speed = 0.9
-        play(audio_file)
-    if key == "0":
+    elif key == "0":
         audio_speed = 1.0
-        play(audio_file)
-    if key == "[":
+    elif key == "[":
         audio_speed = 1.1
-        play(audio_file)
-    if key == "]":
+    elif key == "]":
         audio_speed = 1.2
-        play(audio_file)
-    if key == "\\":
+    elif key == "\\":
         audio_speed = 1.3
-        play(audio_file)
-    if key == ";":
+    elif key == ";":
         audio_speed = 1.4
-        play(audio_file)
-    if key == "'":
+    elif key == "'":
         audio_speed = 1.5
-        play(audio_file)
+    
+    if key in "567890[]\\;'":
+        if audio_replay:
+            play(audio_file)
+        else:
+            anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+            anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % audio_speed))
+     
     if key == "p":
         anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
+    elif key == "l":
+        audio_replay = not audio_replay
+        if audio_replay:
+            showInfo("Auto Replay ON")
+        else:
+            showInfo("Auto Replay OFF")
 
 def my_runHandler(self):
     _self = anki.sound.mplayerManager
