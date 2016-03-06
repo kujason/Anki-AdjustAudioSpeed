@@ -19,35 +19,20 @@ audio_replay = False
 def my_keyHandler(self, evt):
     key = unicode(evt.text())
     global audio_speed, audio_replay
-    if key == "5":
-        audio_speed = 0.5
-    elif key == "6":
-        audio_speed = 0.6
-    elif key == "7":
-        audio_speed = 0.7
-    elif key == "8":
-        audio_speed = 0.8
-    elif key == "9":
-        audio_speed = 0.9
-    elif key == "0":
+    if key == "0":
         audio_speed = 1.0
     elif key == "[":
-        audio_speed = 1.1
+        audio_speed = max(0.1, audio_speed - 0.1)
     elif key == "]":
-        audio_speed = 1.2
-    elif key == "\\":
-        audio_speed = 1.3
-    elif key == ";":
-        audio_speed = 1.4
-    elif key == "'":
-        audio_speed = 1.5
+        audio_speed = min(4.0, audio_speed + 0.1)
     
-    if key in "567890[]\\;'":
+    if key in "0[]":
         if audio_replay:
             play(audio_file)
-        else:
-            anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-            anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % audio_speed))
+        elif anki.sound.mplayerManager is not None:
+            if anki.sound.mplayerManager.mplayer is not None: 
+                anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % audio_speed))
      
     if key == "p":
         anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
