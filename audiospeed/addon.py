@@ -21,7 +21,9 @@ from aqt.utils import showInfo
 sound_regex = ur"\[sound:(.*?)\]"
 
 audio_file = ""
-audio_speed = 1.0
+
+current_audio_speed = 1.0
+desired_audio_speed = 1.0
 audio_replay = False
 
 stdoutQueue = Queue()
@@ -36,24 +38,24 @@ def enqueue_output(out, queue):
 
 def my_keyHandler(self, evt):
     #global messageBuff
-    global audio_speed, audio_replay
+    global desired_audio_speed, audio_replay
     
     key = unicode(evt.text())
 
     if key == "0":
-        audio_speed = 1.0
+        desired_audio_speed = 1.0
     elif key == "[":
-        audio_speed = max(0.1, audio_speed - 0.1)
+        desired_audio_speed = max(0.1, desired_audio_speed - 0.1)
     elif key == "]":
-        audio_speed = min(4.0, audio_speed + 0.1)
+        desired_audio_speed = min(4.0, desired_audio_speed + 0.1)
     
     if key in "0[]":    
         if audio_replay:
             play(audio_file)
         elif anki.sound.mplayerManager is not None:
             if anki.sound.mplayerManager.mplayer is not None: 
-                anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % audio_speed))
+                #anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % desired_audio_speed))
     
     if key == "p":
         anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
@@ -113,7 +115,7 @@ def my_runHandler(self):
                 extra = ""
             else:
                 extra = " 1"
-            cmd = 'loadfile "%s"%s\n' % (item, extra)
+            cmd = 'loadfile "%s"%s \n' % (item, extra)
             
             try:
                 self.mplayer.stdin.write(cmd)
@@ -125,17 +127,15 @@ def my_runHandler(self):
                 #self.startProcess()
                 self.mplayer.stdin.write(cmd)
 
-            if abs(audio_speed - 1.0) > 0.01:
-                self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % audio_speed)
-                self.mplayer.stdin.write("seek 0 1\n")
+            if abs(desired_audio_speed - 1.0) > 0.01:
+                self.mplayer.stdin.write("speed_set %f \n" % desired_audio_speed)
                 
             # Clear out rest of queue
             extraOutput = True
             while extraOutput:
                 try:
                     extraLine = stdoutQueue.get_nowait()
-                    #messageBuff += "ExtraLine: " + line
+                    # messageBuff += "ExtraLine: " + line
                 except Empty:
                     extraOutput = False
             
@@ -167,7 +167,7 @@ def my_runHandler(self):
                     extraOutput = False
             
         # if we feed mplayer too fast it loses files
-        time.sleep(0.1)
+        time.sleep(0.2)
         # end adding to queue
                 
         # wait() on finished processes. we don't want to block on the
@@ -183,7 +183,8 @@ def my_runHandler(self):
 
 def my_startProcessHandler(self):
     try:
-        cmd = anki.sound.mplayerCmd + ["-slave", "-idle", '-msglevel', 'all=0:global=6']
+        cmd = anki.sound.mplayerCmd + ["-slave", "-idle", '-msglevel', 'all=0:global=6', '-af', 'scaletempo=stride=10:overlap=0.8']
+        current_audio_speed = desired_audio_speed
         devnull = file(os.devnull, "w")
         
         # open up stdout PIPE to check when files are done playing
