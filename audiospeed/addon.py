@@ -48,8 +48,19 @@ def my_keyHandler(self, evt):
         desired_audio_speed = max(0.1, desired_audio_speed - 0.1)
     elif key == "]":
         desired_audio_speed = min(4.0, desired_audio_speed + 0.1)
+
+    elif key == "5": desired_audio_speed = 0.5
+    elif key == "6": desired_audio_speed = 0.6
+    elif key == "7": desired_audio_speed = 0.7
+    elif key == "8": desired_audio_speed = 0.8
+    elif key == "9": desired_audio_speed = 0.9
+    elif key == "%": desired_audio_speed = 1.1
+    elif key == "^": desired_audio_speed = 1.2
+    elif key == "&": desired_audio_speed = 1.3
+    elif key == "*": desired_audio_speed = 1.4
+    elif key == "(": desired_audio_speed = 1.5
     
-    if key in "0[]":    
+    if key in "0[]" or key in "56789%^&*()":    
         if audio_replay:
             play(audio_file)
         elif anki.sound.mplayerManager is not None:
